@@ -94,3 +94,24 @@ func DeleteUserByID(c *fiber.Ctx) error {
 	}
    return c.Status(200).JSON(fiber.Map{"status": "success", "message": "User deleted"})
 }
+
+func CheckPhoneNumber(c *fiber.Ctx) error {
+    db := database.DB.Db
+
+    phoneNumber := c.Params("phoneNumber")
+
+    if phoneNumber == "" {
+        return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Phone number is required", "data": nil})
+    }
+
+    var user model.User
+
+    // Check if the phone number exists in the database
+    if err := db.Where("phone = ?", phoneNumber).First(&user).Error; err != nil {
+        return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Error checking phone number", "data": err})
+    }
+
+    // If the user is found, respond with true; otherwise, respond with false
+    isRegistered := user.ID != uuid.Nil
+    return c.Status(200).JSON(fiber.Map{"status": "success", "message": "Phone number registration status", "data": isRegistered})
+}
